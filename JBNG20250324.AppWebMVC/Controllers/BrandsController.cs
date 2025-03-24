@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using JBNG20250324.AppWebMVC.Models;
+using System.Drawing.Drawing2D;
 
 namespace JBNG20250324.AppWebMVC.Controllers
 {
@@ -19,9 +20,18 @@ namespace JBNG20250324.AppWebMVC.Controllers
         }
 
         // GET: Brands
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index( Brand brand)
         {
-            return View(await _context.Brands.ToListAsync());
+            var query = _context.Brands.AsQueryable();
+            if (brand.Id > 0)
+                query = query.Where(s => s.Id == brand.Id);
+
+            var test20250319DbContext = _context.Brands.Include(p => p.BrandName);
+
+            var brands = _context.Brands.ToList();
+            brands.Add(new Brand { BrandName = "SELECCIONAR", Id = 0 });
+            ViewData["Id"] = new SelectList(brands, "Id", "BrandName", 0);
+            return View(await query.ToListAsync());
         }
 
         // GET: Brands/Details/5

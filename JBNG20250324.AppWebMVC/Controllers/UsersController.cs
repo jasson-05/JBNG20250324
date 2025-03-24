@@ -6,9 +6,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using JBNG20250324.AppWebMVC.Models;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 
 namespace JBNG20250324.AppWebMVC.Controllers
 {
+    [Authorize(Roles = "ADMINISTRADOR")]
     public class UsersController : Controller
     {
         private readonly Test20250324DbContext _context;
@@ -19,9 +24,18 @@ namespace JBNG20250324.AppWebMVC.Controllers
         }
 
         // GET: Users
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(User user)
         {
-            return View(await _context.Users.ToListAsync());
+            var query = _context.Users.AsQueryable();
+            if (user.Id > 0)
+                query = query.Where(s => s.Id == user.Id);
+
+            var test20250319DbContext = _context.Users.Include(p => p.Id);
+
+            var brands = _context.Users.ToList();
+            brands.Add(new User { Username = "SELECCIONAR", Id = 0 });
+            ViewData["Id"] = new SelectList(brands, "Id", "Username", 0);
+            return View(await query.ToListAsync());
         }
 
         // GET: Users/Details/5
@@ -62,6 +76,46 @@ namespace JBNG20250324.AppWebMVC.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View(user);
+        }
+
+        [AllowAnonymous]
+        public async Task<IActionResult> CerrarSession()
+        {
+            // Hola mundo
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Index", "Home");
+        }
+
+        [AllowAnonymous]
+        public IActionResult Login()
+        {
+            return View();
+        }
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> Login(User usuario)
+        {
+            // usuario.PasswordHash = CalcularHashMD5(usuario.PasswordHash);
+            var usuarioAuth = await _context.
+                Users.
+                FirstOrDefaultAsync(s => s.Email == usuario.Email && s.Password == usuario.Password);
+            if (usuarioAuth != null && usuarioAuth.Id > 0 && usuarioAuth.Email == usuario.Email)
+            {
+                var claims = new[] {
+                    new Claim(ClaimTypes.Name, usuarioAuth.Email),
+                    new Claim("Id", usuarioAuth.Id.ToString()),
+                     new Claim("Username", usuarioAuth.Username),
+                    new Claim(ClaimTypes.Role, usuarioAuth.Role)
+                    };
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+                return RedirectToAction("Index", "Home");
+            }
+            else
+            {
+                ModelState.AddModelError("", "El email o contraseña estan incorrectos");
+                return View();
+            }
         }
 
         // GET: Users/Edit/5

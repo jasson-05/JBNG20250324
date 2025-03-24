@@ -19,10 +19,25 @@ namespace JBNG20250324.AppWebMVC.Controllers
         }
 
         // GET: Products
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(Product product)
         {
-            var test20250324DbContext = _context.Products.Include(p => p.Brand).Include(p => p.Warehouse);
-            return View(await test20250324DbContext.ToListAsync());
+            var query = _context.Products.AsQueryable();
+            if (product.Id > 0)
+                query = query.Where(s => s.Id == product.Id);
+            if (product.Id > 0)
+                query = query.Where(s => s.Id == product.Id);
+
+
+            var test20250319DbContext = _context.Products.Include(p => p.Brand).Include(p => p.Warehouse);
+           
+
+            var brands = _context.Brands.ToList();
+            brands.Add(new Brand { BrandName = "SELECCIONAR", Id = 0 });
+            var categories = _context.Warehouses.ToList();
+            categories.Add(new Warehouse { WarehouseName = "SELECCIONAR", Id = 0 });
+            ViewData["Id"] = new SelectList(categories, "Id", "WarehouseName", 0);
+            ViewData["Id"] = new SelectList(brands, "Id", "BrandName", 0);
+            return View(await query.ToListAsync());
         }
 
         // GET: Products/Details/5
