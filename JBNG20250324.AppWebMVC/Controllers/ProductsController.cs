@@ -21,13 +21,15 @@ namespace JBNG20250324.AppWebMVC.Controllers
         }
 
         // GET: Products
-        public async Task<IActionResult> Index(Product product)
+        public async Task<IActionResult> Index(Product product, int topRegistro = 10)
         {
             var query = _context.Products.AsQueryable();
             if (product.Id > 0)
                 query = query.Where(s => s.Id == product.Id);
             if (product.Id > 0)
                 query = query.Where(s => s.Id == product.Id);
+            if (topRegistro > 0)
+                query = query.Take(topRegistro);
 
 
             var test20250319DbContext = _context.Products.Include(p => p.Brand).Include(p => p.Warehouse);
