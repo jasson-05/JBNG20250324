@@ -48,8 +48,8 @@ namespace JBNG20250324.AppWebMVC.Controllers
         // GET: Products/Create
         public IActionResult Create()
         {
-            ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "Id");
-            ViewData["WarehouseId"] = new SelectList(_context.Warehouses, "Id", "Id");
+            ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "BrandName");
+            ViewData["WarehouseId"] = new SelectList(_context.Warehouses, "Id", "WarehouseName");
             return View();
         }
 
