@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using JBNG20250324.AppWebMVC.Models;
 using System.Drawing.Drawing2D;
+using Microsoft.AspNetCore.Authorization;
 
 namespace JBNG20250324.AppWebMVC.Controllers
 {
+    [Authorize]
     public class BrandsController : Controller
     {
         private readonly Test20250324DbContext _context;
